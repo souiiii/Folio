@@ -4,7 +4,7 @@
   Open this file directly in a modern browser. No setup or internet required.
   Demo: Evaluator demo > Begin demo > Fill sample answers > Review & submit.
   Use Test time-up to demonstrate automatic submission in 15 seconds.
-  Results > Written > Evaluate this answer confirms or adjusts written marks.
+  Results > Open evaluator view > Evaluate this answer confirms written marks.
   HTML, styling, question bank, grading engine, and UI logic are all embedded.
   Local storage retains the active exam and 20 recent reports in this browser.
 -->
@@ -570,6 +570,36 @@ body{background:white;color:#111;font-size:11px}
 .guide-grid{grid-template-columns:1fr}
 }
 
+
+/* Polished practice solutions, report roles, and paper-specific guidance. */
+.practice-solution{margin-top:18px;border-top:1px solid var(--line);font-size:12px}
+.practice-solution summary{display:flex;align-items:center;gap:8px;padding:14px 0 0;cursor:pointer;color:var(--green);font-weight:600;list-style:none}
+.practice-solution summary::-webkit-details-marker{display:none}
+.practice-solution summary svg{width:14px;height:14px;transition:transform .2s}
+.practice-solution[open] summary svg{transform:rotate(90deg)}
+.practice-solution>div{padding:14px 17px;background:var(--sage);border-radius:7px;margin-top:12px;line-height:1.9}
+.practice-solution p{margin-top:6px;color:var(--muted)}
+.view-switch{display:flex;align-items:center;justify-content:space-between;gap:15px;margin:0 0 18px;padding:13px 16px;background:#fff;border:1px solid var(--line);border-radius:9px}
+.view-switch>div{display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted)}
+.view-switch .pill svg{width:12px;height:12px}
+.view-switch>.btn{flex-shrink:0}
+.review-item summary .points{font-variant-numeric:tabular-nums}
+.paper-card-footer .text-link{font-size:11px}
+@media(max-width:640px){.sidebar{visibility:hidden}.sidebar.open{visibility:visible}.view-switch{align-items:flex-start}.view-switch>div{flex-direction:column;align-items:flex-start;font-size:10px}.view-switch .btn{max-width:140px;font-size:10px}.paper-card-footer{flex-wrap:wrap;gap:15px}.paper-card-footer .text-link{font-size:11px}.score-ring small{font-size:8px}.results-top .score-card{flex-wrap:wrap}.page-heading:has(.heading-actions) h1{overflow-wrap:anywhere}}
+@media print{*,*:before,*:after{animation:none!important;transition:none!important}.view-switch{display:none!important}.practice-solution{display:none!important}.notice{display:flex!important}.score-card,.pill,.progress-fill{print-color-adjust:exact}}
+
+.registration-form{display:grid;grid-template-columns:1.1fr 1fr;gap:13px;margin:0 0 21px}
+.registration-form label{display:block;font-size:11px;font-weight:600;margin-bottom:6px}
+.registration-form label span{color:var(--orange)}
+.registration-form .form-input{font-size:12px;min-width:0}
+.compact-instructions{gap:10px;margin-bottom:18px}
+.compact-instructions li{font-size:11px}
+.candidate-strip{display:flex;align-items:center;gap:25px;flex-wrap:wrap;padding:0 2px 17px;margin-top:-8px;font-size:10px;color:var(--muted)}
+.candidate-strip span{display:flex;gap:8px;align-items:baseline;min-width:0}
+.candidate-strip b{font-size:12px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+.exam-header p{overflow-wrap:anywhere}
+@media(max-width:640px){.registration-form{gap:10px}.registration-form .form-input{padding:11px 10px;font-size:12px}.candidate-strip{gap:9px 18px;margin-top:0}.candidate-strip span{flex-wrap:wrap;gap:4px}.exam-header>div:first-child{min-width:0}.candidate-strip b{font-size:11px}}
+@media(max-width:360px){.registration-form{grid-template-columns:1fr}}
   </style>
 
 </head>
@@ -580,7 +610,7 @@ body{background:white;color:#111;font-size:11px}
   <div id="toast" role="status" aria-live="polite"></div>
   <div id="announcer" class="sr-only" aria-live="assertive"></div>
   <noscript>This examination workspace needs JavaScript. Please enable it in your browser.</noscript>
-<!-- 2. Sample paper and pure grading/timer functions -->
+<!-- 2. Separate practice/assessment banks and pure grading/timer functions -->
 <script>
 /* Pure exam data and scoring. No network, libraries, or server required. */
 (function (root) {
@@ -615,7 +645,42 @@ body{background:white;color:#111;font-size:11px}
       { label: 'Preserves readable content', keywords: ['readable', 'font size', 'legible', 'typography', 'zoom', 'readability'], points: 2 }
     ], model: 'Use media queries and a flexible layout to stack the question area and navigator on small screens. Make touch targets at least 44px high and keep space between answer options. Use a readable font size, allow zoom, and ensure the timer and submit action remain easy to find without horizontal scrolling.' }
   ];
-  const paper = { id: 'web-foundations', title: 'Web Development Fundamentals', subject: 'Computer Science', code: 'WD · 101', minutes: 30, demoMinutes: 2, passPercent: 50, points: questions.reduce((n, q) => n + q.points, 0), questions };
+  // A separate assessment set: no questions are reused from the practice paper.
+  const examQuestions = [
+    { id: 'e1', type: 'mcq', topic: 'HTML', points: 2, title: 'Which input type provides built-in validation for an email address?', options: ['type="text"', 'type="email"', 'type="address"', 'type="mail"'], correct: 1, explanation: 'An input with type="email" asks the browser to validate the format of a non-empty email address. Add required if the field must not be left blank.' },
+    { id: 'e2', type: 'mcq', topic: 'CSS', points: 2, title: 'What is the rendered width of this box, excluding its margin?', code: '.card {\n  width: 200px;\n  padding: 20px;\n  border: 2px solid;\n  box-sizing: border-box;\n}', options: ['200px', '240px', '244px', '196px'], correct: 0, explanation: 'With border-box, the declared 200px width includes the content, padding, and borders. Margins remain outside that width.' },
+    { id: 'e3', type: 'mcq', topic: 'JavaScript', points: 2, title: 'What does this strict comparison return?', code: 'console.log(5 === "5");', options: ['true', '"true"', 'false', 'A TypeError'], correct: 2, explanation: 'Strict equality (===) does not convert between types. A number and a string are different types, so this expression returns false.' },
+    { id: 'e4', type: 'mcq', topic: 'Accessibility', points: 2, title: 'How do you explicitly associate a label with its form input?', options: ['Give the label and input the same class', 'Place the label anywhere before the input', 'Set the input’s name to the label text', 'Match the label’s for attribute to the input’s id'], correct: 3, explanation: 'The label’s for value must match the input’s id. This creates an accessible label and lets clicking the label focus or activate the associated control.' },
+    { id: 'e5', type: 'mcq', topic: 'CSS', points: 2, title: 'Which declaration defines three equal-width columns in a grid container?', options: ['grid-columns: 3;', 'grid-template-columns: repeat(3, 1fr);', 'grid-template-rows: repeat(3, 1fr);', 'column-width: 33%;'], correct: 1, explanation: 'grid-template-columns: repeat(3, 1fr) defines three equal flexible columns in an element that uses display: grid.' },
+    { id: 'e6', type: 'mcq', topic: 'JavaScript', points: 2, title: 'Which method stops a form’s default submission inside a submit event handler?', options: ['event.preventDefault()', 'event.stopPropagation()', 'form.reset()', 'event.stopImmediatePropagation()'], correct: 0, explanation: 'preventDefault() cancels the default action, such as a form navigating to its action URL. Stopping propagation only changes how an event reaches other listeners.' },
+    { id: 'e7', type: 'mcq', topic: 'Browser storage', points: 2, title: 'What should you do before storing a JavaScript object in localStorage?', options: ['Convert it with Number()', 'Store it directly as an object', 'Serialize it with JSON.stringify()', 'Call JSON.parse() on it'], correct: 2, explanation: 'localStorage stores strings. JSON.stringify() serializes an object for storage; JSON.parse() reconstructs it when reading the saved value.' },
+    { id: 'e8', type: 'mcq', topic: 'Responsive design', points: 2, title: 'Which viewport declaration is appropriate for a responsive page?', options: ['<meta name="viewport" content="width=1200">', '<meta name="viewport" content="width=device-width, initial-scale=1">', '<meta name="viewport" content="user-scalable=no">', '<meta name="viewport" content="height=100%">'], correct: 1, explanation: 'width=device-width makes the layout viewport match the device width. initial-scale=1 sets the initial zoom level without preventing users from zooming.' },
+    { id: 'e9', type: 'written', topic: 'HTML & accessibility', points: 6, title: 'Design an accessible email field for an exam registration form.', prompt: 'Describe how you would label the field, select its input type, and communicate validation errors. HTML examples are welcome.', recommended: '40–100', rubric: [
+      { label: 'Associates a visible label with the input', keywords: ['label'], requiredGroups: [['for', 'id', 'wrap', 'wrapping']], points: 2 },
+      { label: 'Uses an email input type', keywords: ['type="email"', "type='email'", 'type=email', 'email input', 'input type email'], points: 2 },
+      { label: 'Communicates errors accessibly', keywords: ['aria-describedby', 'aria-live', 'error message', 'error text', 'text error', 'validation message'], points: 2 }
+    ], model: 'Use a visible label with a for attribute matching the input’s id, and set type="email". Add required if an address is mandatory. Explain an invalid address with a clear error message beside the input, associate that message using aria-describedby, and mark the field aria-invalid when appropriate. Do not rely on colour alone.' },
+    { id: 'e10', type: 'written', topic: 'CSS', points: 6, title: 'Explain how CSS specificity resolves competing declarations.', prompt: 'Compare ID, class, and element selectors. Explain what happens when specificity is equal, assuming the same origin, importance, and cascade layer.', recommended: '40–100', rubric: [
+      { label: 'Discusses ID selectors as the most specific of these three', keywords: ['id', 'ids'], points: 2 },
+      { label: 'Compares class and element selectors', keywords: ['class', 'classes'], requiredGroups: [['element', 'elements', 'type selector', 'tag']], points: 2 },
+      { label: 'Explains source order for equal specificity', keywords: ['later', 'last', 'source order'], points: 2 }
+    ], model: 'Among these selectors, an ID selector has greater specificity than a class selector, and a class selector has greater specificity than an element selector. When declarations have equal specificity and the same origin, importance, and cascade layer, the declaration appearing later in source order wins.' },
+    { id: 'e11', type: 'written', topic: 'JavaScript', points: 6, title: 'How can a countdown timer remain accurate after a page refresh?', prompt: 'Describe what to store, how to calculate the remaining time, and how to handle an exam whose deadline has already passed.', recommended: '40–100', rubric: [
+      { label: 'Stores a fixed deadline', keywords: ['deadline', 'end time', 'end timestamp'], requiredGroups: [['store', 'save', 'persist', 'localstorage', 'stored', 'saved']], points: 2 },
+      { label: 'Calculates the difference from the current time', keywords: ['date.now', 'current time', 'now'], requiredGroups: [['subtract', 'difference', 'minus', 'deadline -', 'deadline-']], points: 2 },
+      { label: 'Submits when the deadline has passed', keywords: ['submit', 'submission'], requiredGroups: [['zero', 'expired', 'passed', '<= 0', 'negative']], points: 2 }
+    ], model: 'Save a fixed deadline timestamp in localStorage when the exam starts. After refresh, load that deadline and subtract Date.now() to calculate the remaining time, instead of restarting a full countdown. Clamp the displayed value to zero. If the deadline has passed, submit the saved answers once and mark the attempt complete.' },
+    { id: 'e12', type: 'written', topic: 'Responsive design', points: 6, title: 'A results table overflows on a narrow screen. How would you fix it?', prompt: 'Describe a way to access all columns, retain the table’s meaning for assistive technology, and preserve readable text.', recommended: '40–100', rubric: [
+      { label: 'Makes overflowing columns accessible', keywords: ['overflow-x', 'horizontal scroll', 'scrollable', 'scroll container'], points: 2 },
+      { label: 'Retains meaningful table headers', keywords: ['scope', 'table header', 'headers', '<th>'], points: 2 },
+      { label: 'Preserves readable, zoomable text', keywords: ['readable', 'legible', 'font size', 'zoom', 'readability'], points: 2 }
+    ], model: 'Place the table inside a container with overflow-x: auto so every column remains accessible through horizontal scrolling. Preserve the table structure, use table header cells with appropriate scope values, and include a useful caption. Keep a readable font size and allow zoom instead of shrinking the entire table until its text is too small.' }
+  ];
+  const practicePaper = { id: 'practice-v1', title: 'Web Development · Practice Paper', subject: 'Computer Science', code: 'WD · P01', minutes: 30, demoMinutes: 2, passPercent: 50, points: 40, questions };
+  const paper = { ...practicePaper, id: 'assessment-v2', title: 'Web Development Fundamentals', code: 'WD · A01', questions: examQuestions };
+  // Old saved attempts keep their original question bank and answer key.
+  const legacyPaper = { ...practicePaper, id: 'legacy-v1', title: 'Web Development Fundamentals · Earlier Edition', code: 'WD · 101' };
+  function getPaper(attempt) { return attempt?.paperId === paper.id ? paper : attempt?.paperId === practicePaper.id ? practicePaper : legacyPaper; }
   const normalize = value => String(value).toLowerCase().replace(/[-–—]/g, ' ').replace(/\s+/g, ' ').trim();
   const answered = (question, answer) => question.type === 'mcq' ? Number.isInteger(answer) && answer >= 0 && answer < question.options.length : typeof answer === 'string' && answer.trim().length > 0;
   function criterionMatches(answer, criterion) {
@@ -624,31 +689,34 @@ body{background:white;color:#111;font-size:11px}
       const escaped = normalize(keyword).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       return new RegExp('(^|[^a-z0-9])' + escaped + '($|[^a-z0-9])', 'i').test(normalized);
     });
-    return found.length >= (criterion.minimum || 1);
+    return found.length >= (criterion.minimum || 1) && (criterion.requiredGroups || []).every(keywords => criterionMatches(answer, { keywords }));
   }
   function scoreQuestion(question, answer, override) {
     const isAnswered = answered(question, answer);
     if (question.type === 'mcq') return { id: question.id, earned: isAnswered && answer === question.correct ? question.points : 0, points: question.points, answered: isAnswered, reviewed: true, criteria: [] };
     const criteria = question.rubric.map(c => ({ label: c.label, points: c.points, matched: isAnswered && criterionMatches(answer, c) }));
     const suggested = criteria.reduce((sum, c) => sum + (c.matched ? c.points : 0), 0);
-    const reviewed = !!override && typeof override.score === 'number' && Number.isFinite(override.score) && override.score >= 0 && override.score <= question.points;
-    return { id: question.id, earned: reviewed ? override.score : suggested, suggested, points: question.points, answered: isAnswered, reviewed, criteria, feedback: reviewed ? String(override.feedback || '') : '' };
+    const confirmed = !!override && typeof override.score === 'number' && Number.isFinite(override.score) && override.score >= 0 && override.score <= question.points && Number.isInteger(override.score * 2);
+    return { id: question.id, earned: !isAnswered ? 0 : confirmed ? override.score : suggested, suggested, points: question.points, answered: isAnswered, reviewed: !isAnswered || confirmed, criteria, feedback: isAnswered && confirmed ? String(override.feedback || '') : '' };
   }
   function grade(attempt) {
-    const rows = questions.map(q => scoreQuestion(q, attempt.answers[q.id], attempt.overrides?.[q.id]));
+    const selected = getPaper(attempt);
+    const rows = selected.questions.map(q => scoreQuestion(q, attempt.answers[q.id], attempt.overrides?.[q.id]));
     const earned = rows.reduce((sum, row) => sum + row.earned, 0);
-    const percent = Math.round(earned / paper.points * 100);
-    return { rows, earned, total: paper.points, percent, passed: percent >= paper.passPercent, provisional: rows.some(row => !row.reviewed), mcq: rows.slice(0, 8).reduce((s, r) => s + r.earned, 0), written: rows.slice(8).reduce((s, r) => s + r.earned, 0), answered: rows.filter(r => r.answered).length };
+    const percent = Math.round(earned / selected.points * 100);
+    const provisional = rows.some(row => !row.reviewed);
+    return { rows, earned, total: selected.points, percent, passed: provisional ? null : earned / selected.points * 100 >= selected.passPercent, provisional, mcq: rows.slice(0, 8).reduce((s, r) => s + r.earned, 0), written: rows.slice(8).reduce((s, r) => s + r.earned, 0), answered: rows.filter(r => r.answered).length };
   }
   function createAttempt(demo = false, now = Date.now()) {
-    const duration = (demo ? paper.demoMinutes : paper.minutes) * 60;
-    return { id: 'attempt-' + now + '-' + Math.random().toString(36).slice(2, 7), startedAt: now, deadline: now + duration * 1000, duration, demo, answers: {}, flags: [], visited: ['q1'], current: 0, notes: '', overrides: {}, submittedAt: null, autoSubmitted: false };
+    const selected = demo ? practicePaper : paper;
+    const duration = (demo ? selected.demoMinutes : selected.minutes) * 60;
+    return { id: 'attempt-' + now + '-' + Math.random().toString(36).slice(2, 7), paperId: selected.id, startedAt: now, deadline: now + duration * 1000, duration, demo, answers: {}, flags: [], visited: [selected.questions[0].id], current: 0, notes: '', overrides: {}, submittedAt: null, autoSubmitted: false };
   }
   function sampleAnswers() {
     return { q1: 1, q2: 0, q3: 2, q4: 3, q5: 1, q6: 2, q7: 2, q8: 0, q9: questions[8].model, q10: questions[9].model, q11: 'Attach a listener to the parent container. Events bubble up from the child so a single listener can handle dynamically added elements.', q12: 'Use media queries to adapt the layout to different screens. Use a readable font size and keep the timer clearly visible.' };
   }
   function secondsLeft(attempt, now = Date.now()) { return Math.max(0, Math.ceil((attempt.deadline - now) / 1000)); }
-  const api = { paper, answered, scoreQuestion, grade, createAttempt, sampleAnswers, secondsLeft };
+  const api = { paper, practicePaper, getPaper, answered, scoreQuestion, grade, createAttempt, sampleAnswers, secondsLeft };
   root.ExamEngine = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -658,7 +726,7 @@ body{background:white;color:#111;font-size:11px}
 (function () {
   'use strict';
   const E = window.ExamEngine;
-  const { paper } = E;
+  const { paper, practicePaper } = E;
   const KEY = 'folio-exam-v1';
   const $ = (selector, parent = document) => parent.querySelector(selector);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -696,9 +764,9 @@ body{background:white;color:#111;font-size:11px}
   const icon = (name, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.paper}</svg>`;
   const btn = (label, action, cls = 'secondary', ico = '', attrs = '') => `<button type="button" class="btn ${cls}" data-action="${action}" ${attrs}>${ico ? icon(ico) : ''}${label}</button>`;
   const initialState = () => ({ version: 1, active: null, history: [], largeText: false, selectedResult: null });
-  let state = initialState(), storageOK = true, view = 'overview', filter = 'all', focusMode = false, modalKind = '', modalQuestion = '', lastFocused = null, toastTimeout, lastTimeAnnounced = '', suppressHash = false;
+  let state = initialState(), storageOK = true, view = 'overview', filter = 'all', focusMode = false, modalKind = '', modalQuestion = '', lastFocused = null, toastTimeout, lastTimeAnnounced = '', suppressHash = false, evaluatorMode = false;
   function validAttempt(a) {
-    return a && typeof a.id === 'string' && Number.isFinite(a.startedAt) && Number.isFinite(a.deadline) && a.deadline >= a.startedAt && Number.isFinite(a.duration) && a.duration > 0 && a.answers && typeof a.answers === 'object' && !Array.isArray(a.answers) && Array.isArray(a.flags) && Array.isArray(a.visited) && Number.isInteger(a.current) && a.current >= 0 && a.current < paper.questions.length && typeof a.notes === 'string' && a.overrides && typeof a.overrides === 'object';
+    return a && typeof a.id === 'string' && Number.isFinite(a.startedAt) && Number.isFinite(a.deadline) && a.deadline >= a.startedAt && Number.isFinite(a.duration) && a.duration > 0 && a.answers && typeof a.answers === 'object' && !Array.isArray(a.answers) && Array.isArray(a.flags) && Array.isArray(a.visited) && Number.isInteger(a.current) && a.current >= 0 && a.current < E.getPaper(a).questions.length && typeof a.notes === 'string' && a.overrides && typeof a.overrides === 'object';
   }
   function load() {
     try {
@@ -726,12 +794,14 @@ body{background:white;color:#111;font-size:11px}
   }
   const formatTime = seconds => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
   const dateFormat = timestamp => new Date(timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-  const answeredCount = a => paper.questions.filter(q => E.answered(q, a.answers[q.id])).length;
+  const activePaper = () => E.getPaper(state.active);
+  const answeredCount = a => E.getPaper(a).questions.filter(q => E.answered(q, a.answers[q.id])).length;
+  const timeFormat = timestamp => new Date(timestamp).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   const currentResult = () => state.history.find(a => a.id === state.selectedResult) || state.history[0];
   const footer = () => `<footer class="page-footer"><span>FOLIO &nbsp; / &nbsp; A little space for big ideas.</span><span>Made for learning. ${icon('heart').replace('<svg ', '<svg style="width:10px;height:10px;vertical-align:middle;color:var(--orange)" ')} &nbsp; Lab 10</span></footer>`;
   function shell() {
-    const names = { overview: 'Overview', paper: 'Sample paper', exam: 'Exam in progress', results: 'Results & feedback', guide: 'Grading guide' };
-    const links = [['overview', 'grid', 'Overview'], ['paper', 'paper', 'Sample paper'], ['results', 'chart', 'Results & feedback'], ['guide', 'book', 'Grading guide']];
+    const names = { overview: 'Overview', paper: 'Practice paper', exam: 'Exam in progress', results: 'Results & feedback', guide: 'Exam guide' };
+    const links = [['overview', 'grid', 'Overview'], ['paper', 'paper', 'Practice paper'], ['results', 'chart', 'Results & feedback'], ['guide', 'book', 'Exam guide']];
     return `<div class="layout">
       <aside class="sidebar" id="sidebar" aria-label="Main navigation">
         <button class="brand" data-action="nav" data-view="overview" aria-label="Folio home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="brand-name">folio.</span></button>
@@ -749,15 +819,19 @@ body{background:white;color:#111;font-size:11px}
       </div></div>`;
   }
   function render() {
+    const focused = document.activeElement;
+    const focusAction = focused?.dataset?.action, focusFilter = focused?.dataset?.filter;
     document.body.classList.toggle('focus-mode', focusMode);
     document.body.classList.toggle('large-text', state.largeText);
     $('#app').innerHTML = shell();
+    if (focusAction) [...document.querySelectorAll('[data-action]')].find(el => el.dataset.action === focusAction && (!focusFilter || el.dataset.filter === focusFilter))?.focus({ preventScroll: true });
     document.title = `Folio — ${view === 'exam' ? 'Exam in progress' : view === 'results' ? 'Your results' : 'Your exam workspace'}`;
     updateTimer();
   }
   function navigate(next, updateHash = true) {
     closeModal();
     if (next === 'exam' && !state.active) next = state.history.length ? 'results' : 'overview';
+    if (state.active && !state.active.demo && ['paper', 'results'].includes(next)) { toast('Study materials and past reports are available after you submit.'); next = 'exam'; }
     view = ['overview', 'paper', 'exam', 'results', 'guide'].includes(next) ? next : 'overview';
     if (view !== 'exam') focusMode = false;
     if (updateHash && location.hash !== '#' + view) { suppressHash = true; location.hash = view; }
@@ -767,21 +841,22 @@ body{background:white;color:#111;font-size:11px}
     return `<div class="hero-art" aria-hidden="true"><svg viewBox="0 0 240 190" fill="none"><ellipse cx="119" cy="106" rx="100" ry="62" stroke="#a0af93" stroke-dasharray="3 5" transform="rotate(-28 119 106)"/><path d="M19 145c24 16 54 7 66-9M191 29l11-4m-3-5 3 5-2 6" stroke="#8d9d81"/><rect x="74" y="36" width="109" height="130" rx="8" fill="#cdd9c4" transform="rotate(12 74 36)"/><rect x="57" y="29" width="109" height="130" rx="8" fill="#fafbf5" stroke="#c2cdb8" transform="rotate(-8 57 29)"/><path d="m77 58 47-7M80 73l63-9M84 95l39-5M87 113l52-8M90 132l31-5" stroke="#b4c2a7" stroke-width="2" stroke-linecap="round"/><circle cx="154" cy="123" r="35" fill="#315644"/><circle cx="154" cy="123" r="27" stroke="#718971"/><path d="M154 106v17l12 8" stroke="#f3f4de" stroke-width="2.5" stroke-linecap="round"/><circle cx="154" cy="123" r="2.5" fill="#f3f4de"/><path d="m35 60 3-9 3 9 9 3-9 3-3 9-3-9-9-3z" fill="#cb9369"/><circle cx="201" cy="89" r="4" fill="#cc946c"/><path d="m51 169 6-7m-7 0 7 7M188 162l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" stroke="#8ca17d"/></svg><div class="art-caption">FOCUS. THINK. FLOURISH.</div></div>`;
   }
   function overview() {
-    return `<div class="page-heading"><div><div class="eyebrow">A fresh page, a fresh possibility</div><h1>Make room for your best.</h1><p>Your exam workspace. Thoughtfully simple, from start to finish.</p></div><span class="date-label">${new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span></div>
-      <section class="hero" aria-label="Welcome"><div class="hero-copy"><div class="eyebrow">Less distraction. More you.</div><h2>A little focus.<br><em>A lot of possibility.</em></h2><p>Settle in, take your time, and show what you know.<br>We’ll take care of the details.</p><div class="hero-bottom">${btn(state.active ? 'Pick up where you left off' : 'Explore the sample paper', state.active ? 'nav' : 'nav', 'primary', 'arrow', `data-view="${state.active ? 'exam' : 'paper'}"`)}<span class="micro-note">No account needed. Ever.</span></div></div>${art()}</section>
-      <div class="section-title"><h2>Your examination</h2><small>01 paper &nbsp;·&nbsp; Ready when you are</small></div>
-      <div class="dashboard-grid"><article class="paper-card"><div class="paper-card-body"><div class="card-top"><span class="subject-icon">${icon('code')}</span><span class="pill">${icon('checkCircle').replace('<svg ', '<svg style="width:11px;height:11px" ')} Sample paper</span></div><div class="paper-code">${paper.subject} &nbsp; / &nbsp; ${paper.code}</div><h3>${paper.title}</h3><p class="description">From the structure of a page to the logic behind it. Put your HTML, CSS, and JavaScript foundations into practice.</p><div class="paper-stats"><span>${icon('clock')}30 minutes</span><span>${icon('paper')}12 questions</span><span>${icon('award')}40 marks</span></div><div class="tag-row"><span class="tag">8 multiple choice</span><span class="tag">4 written responses</span><span class="tag">No negative marking</span></div></div><div class="paper-card-footer"><button class="text-link" data-action="nav" data-view="paper">Preview paper ${icon('right')}</button>${state.active ? btn('Resume exam', 'nav', 'primary', 'arrow', 'data-view="exam"') : btn('Start examination', 'start', 'primary', 'arrow')}</div></article>
+    return `<div class="page-heading"><div><div class="eyebrow">A fresh page, a fresh possibility</div><h1>Make room for your best.</h1><p>Prepare with a practice paper, then put your knowledge to the test.</p></div><span class="date-label">${new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span></div>
+      <section class="hero" aria-label="Welcome"><div class="hero-copy"><div class="eyebrow">Less distraction. More you.</div><h2>A little focus.<br><em>A lot of possibility.</em></h2><p>Settle in, take your time, and show what you know.<br>We’ll take care of the details.</p><div class="hero-bottom">${btn(state.active ? 'Pick up where you left off' : 'Explore the practice paper', 'nav', 'primary', 'arrow', `data-view="${state.active ? 'exam' : 'paper'}"`)}<span class="micro-note">Practice first. Begin when ready.</span></div></div>${art()}</section>
+      <div class="section-title"><h2>Your examination</h2><small>Assessment &nbsp;·&nbsp; Questions revealed on start</small></div>
+      <div class="dashboard-grid"><article class="paper-card"><div class="paper-card-body"><div class="card-top"><span class="subject-icon">${icon('code')}</span><span class="pill">${icon('checkCircle').replace('<svg ', '<svg style="width:11px;height:11px" ')} Assessment</span></div><div class="paper-code">${paper.subject} &nbsp; / &nbsp; ${paper.code}</div><h3>${paper.title}</h3><p class="description">From the structure of a page to the logic behind it. A separate set of HTML, CSS, and JavaScript questions, revealed when you begin.</p><div class="paper-stats"><span>${icon('clock')}30 minutes</span><span>${icon('paper')}12 questions</span><span>${icon('award')}40 marks</span></div><div class="tag-row"><span class="tag">8 multiple choice</span><span class="tag">4 written responses</span><span class="tag">No negative marking</span></div></div><div class="paper-card-footer"><button class="text-link" data-action="nav" data-view="paper">Practice with a different paper ${icon('right')}</button>${state.active ? btn('Resume exam', 'nav', 'primary', 'arrow', 'data-view="exam"') : btn('Start examination', 'start', 'primary', 'arrow')}</div></article>
       <aside class="readiness-card"><h3>A clear head start.</h3><p>A few things to know before you begin.</p><div class="readiness-list"><div class="readiness-item"><span class="mini-icon">${icon('clock')}</span><div><h4>Your time, clearly in view</h4><p>A live countdown keeps you on track.<br>Your paper submits when time is up.</p></div></div><div class="readiness-item"><span class="mini-icon">${icon('save')}</span><div><h4>Every thought, saved</h4><p>Your answers save as you go. Refresh?<br>You’ll pick up right where you left off.</p></div></div><div class="readiness-item"><span class="mini-icon">${icon('flag')}</span><div><h4>Come back with fresh eyes</h4><p>Flag a question and revisit it before<br>you make your final submission.</p></div></div></div><button class="text-link guide-link" data-action="nav" data-view="guide">How your answers are graded ${icon('arrow')}</button></aside></div>
       <div class="feature-row"><div class="feature">${icon('shield')}<div><h4>A calm, private workspace</h4><p>No sign-up or uploads.<br>Your work stays in this browser.</p></div></div><div class="feature">${icon('chart')}<div><h4>Feedback that moves you forward</h4><p>Clear scores, model answers,<br>and a little more understanding.</p></div></div><div class="feature">${icon('leaf')}<div><h4>Made for your own pace</h4><p>Jump between questions.<br>Find your focus. Make it yours.</p></div></div></div>`;
   }
   function paperPage() {
-    return `<div class="page-heading"><div><div class="eyebrow">The question paper &nbsp; / &nbsp; ${paper.code}</div><h1>${paper.title}</h1><p>Take a look around. Previewing the paper does not start the timer.</p></div><div class="heading-actions">${btn('Print paper', 'print', 'secondary small', 'print')}${btn(state.active ? 'Resume exam' : 'Start exam', state.active ? 'resume' : 'start', 'primary small', 'arrow')}</div></div>
-      <div class="paper-overview"><div><span>TIME ALLOWED</span><strong>30 minutes</strong></div><div><span>TOTAL QUESTIONS</span><strong>12 questions</strong></div><div><span>MAXIMUM MARKS</span><strong>40 marks</strong></div><div><span>PASS THRESHOLD</span><strong>50% · 20 marks</strong></div></div>
-      <div class="notice">${icon('info')}<p>Attempt all questions. Each MCQ has one correct answer. There is no negative marking. Written responses receive rubric-based suggestions and can be reviewed by an evaluator.</p></div>
-      ${['mcq', 'written'].map((type, index) => `<section class="preview-section"><h2>Section ${index ? 'B' : 'A'} — ${index ? 'Written responses' : 'Multiple choice'}</h2><p>${index ? '4 questions × 6 marks = 24 marks. Explain your reasoning in your own words.' : '8 questions × 2 marks = 16 marks. Select one answer for each question.'}</p>${paper.questions.filter(q => q.type === type).map(q => `<article class="preview-question"><div class="question-heading"><h3>${paper.questions.indexOf(q) + 1}. ${esc(q.title)}</h3><span class="pill neutral">${q.points} marks</span></div>${q.code ? `<code class="code">${esc(q.code)}</code>` : ''}${q.prompt ? `<p class="prompt">${esc(q.prompt)}</p>` : ''}${q.options ? `<div class="preview-options">${q.options.map((o, i) => `<span>${String.fromCharCode(65 + i)}. &nbsp;${esc(o)}</span>`).join('')}</div>` : '<div class="answer-lines" aria-hidden="true"></div>'}</article>`).join('')}</section>`).join('')}`;
+    const paper = practicePaper;
+    return `<div class="page-heading"><div><div class="eyebrow">Prepare before you begin &nbsp; / &nbsp; ${paper.code}</div><h1>${paper.title}</h1><p>Same format and marking scheme. A completely different set of questions from the assessment.</p></div><div class="heading-actions">${btn('Print practice paper', 'print', 'secondary small', 'print')}${btn(state.active ? 'Resume demo' : 'Try 2-minute demo', state.active ? 'resume' : 'demo', 'primary small', 'play')}</div></div>
+      <div class="paper-overview"><div><span>SUGGESTED PRACTICE TIME</span><strong>30 minutes</strong></div><div><span>TOTAL QUESTIONS</span><strong>12 questions</strong></div><div><span>MAXIMUM MARKS</span><strong>40 marks</strong></div><div><span>PASS THRESHOLD</span><strong>50% · 20 marks</strong></div></div>
+      <div class="notice">${icon('info')}<p>This is a study resource, with answers you can reveal below. Browsing does not start a timer or create a result. The actual assessment has 12 different questions; the evaluator demo uses this practice set.</p></div>
+      ${['mcq', 'written'].map((type, index) => `<section class="preview-section"><h2>Section ${index ? 'B' : 'A'} — ${index ? 'Written responses' : 'Multiple choice'}</h2><p>${index ? '4 questions × 6 marks = 24 marks. Explain your reasoning in your own words.' : '8 questions × 2 marks = 16 marks. Select one answer for each question.'}</p>${paper.questions.filter(q => q.type === type).map(q => `<article class="preview-question"><div class="question-heading"><h3>${paper.questions.indexOf(q) + 1}. ${esc(q.title)}</h3><span class="pill neutral">${q.points} marks</span></div>${q.code ? `<code class="code">${esc(q.code)}</code>` : ''}${q.prompt ? `<p class="prompt">${esc(q.prompt)}</p>` : ''}${q.options ? `<div class="preview-options">${q.options.map((o, i) => `<span>${String.fromCharCode(65 + i)}. &nbsp;${esc(o)}</span>`).join('')}</div>` : '<div class="answer-lines" aria-hidden="true"></div>'}<details class="practice-solution"><summary>Check the ${q.type === 'mcq' ? 'answer' : 'model response'} ${icon('right')}</summary><div>${q.type === 'mcq' ? `<b>${esc(q.options[q.correct])}</b><p>${esc(q.explanation)}</p>` : `<p>${esc(q.model)}</p><p class="inline-note">Key points: ${q.rubric.map(c => esc(c.label)).join(' · ')}</p>`}</div></details></article>`).join('')}</section>`).join('')}`;
   }
   function navigator() {
-    const a = state.active, count = answeredCount(a);
+    const a = state.active, paper = E.getPaper(a), count = answeredCount(a);
     return `<div class="navigator"><h3>Your question map</h3><div class="progress-label"><span>${count} of 12 answered</span><span>${Math.round(count / 12 * 100)}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${count / 12 * 100}%"></div></div>${['mcq', 'written'].map((type, index) => `<div class="eyebrow">Section ${index ? 'B · Written responses' : 'A · Multiple choice'}</div><div class="question-grid ${index ? 'written-grid' : ''}">${paper.questions.filter(q => q.type === type).map(q => {
       const number = paper.questions.indexOf(q), ans = E.answered(q, a.answers[q.id]), flag = a.flags.includes(q.id);
       return `<button class="question-tile ${ans ? 'answered' : a.visited.includes(q.id) ? 'visited' : ''} ${number === a.current ? 'current' : ''} ${flag ? 'flagged' : ''}" data-action="question" data-index="${number}" ${number === a.current ? 'aria-current="step"' : ''} aria-label="Question ${number + 1}, ${ans ? 'answered' : 'unanswered'}${flag ? ', flagged for review' : ''}">${String(number + 1).padStart(2, '0')}</button>`;
@@ -789,33 +864,37 @@ body{background:white;color:#111;font-size:11px}
   }
   function examPage() {
     if (!state.active) return overview();
-    const a = state.active, q = paper.questions[a.current], flagged = a.flags.includes(q.id);
-    return `<div class="page-heading exam-header"><div><div class="eyebrow">${a.demo ? 'Evaluator demo' : 'Your examination'} &nbsp; / &nbsp; ${paper.code}</div><h1>${paper.title}</h1><p>Take a breath. You’ve got room to think.</p></div><div class="timer-wrap" id="timer-wrap">${icon('clock')}<div><div class="timer-label">Time remaining</div><div class="timer-value" id="timer-value" role="timer" aria-label="Time remaining">${formatTime(E.secondsLeft(a))}</div></div></div></div>
+    const a = state.active, paper = E.getPaper(a), q = paper.questions[a.current], flagged = a.flags.includes(q.id);
+    return `<div class="page-heading exam-header"><div><div class="eyebrow">${a.demo ? 'Evaluator demo' : 'Your examination'} &nbsp; / &nbsp; ${paper.code}</div><h1>${paper.title}</h1><p>${a.candidate ? `${esc(a.candidate.name)} &nbsp;·&nbsp; ${esc(a.candidate.roll)}` : 'Take a breath. You’ve got room to think.'}</p></div><div class="timer-wrap" id="timer-wrap">${icon('clock')}<div><div class="timer-label">Time remaining</div><div class="timer-value" id="timer-value" role="timer" aria-label="Time remaining">${formatTime(E.secondsLeft(a))}</div></div></div></div>
       ${a.demo ? `<div class="demo-bar"><span>${icon('spark').replace('<svg ', '<svg style="width:13px;height:13px;vertical-align:middle;margin-right:4px" ')}Demo session · Explore the complete exam experience.</span><div>${btn('Fill sample answers', 'fill-demo', 'secondary', 'pen')}${btn('Test time-up · 15s', 'fast-timer', 'secondary', 'clock')}</div></div>` : ''}
-      <div class="exam-layout"><section class="question-card" aria-labelledby="question-title"><div class="question-top"><span class="number">Question ${String(a.current + 1).padStart(2, '0')} <span>/ 12</span></span>${btn(flagged ? 'Flagged for review' : 'Flag for review', 'flag', `secondary small flag-button ${flagged ? 'flagged' : ''}`, 'flag', `aria-pressed="${flagged}"`)}</div><div class="question-body"><div class="question-meta"><span class="pill neutral">${q.type === 'mcq' ? 'Multiple choice' : 'Written response'}</span><span class="pill peach">${q.points} marks</span><span class="pill neutral">${q.topic}</span></div><h2 id="question-title">${esc(q.title)}</h2>${q.prompt ? `<p>${esc(q.prompt)}</p>` : '<p>Select one answer below.</p>'}${q.code ? `<code class="code">${esc(q.code)}</code>` : ''}${q.type === 'mcq' ? `<fieldset class="options" style="border:0;padding:0;margin-left:0;margin-right:0"><legend class="sr-only">Choose an answer to question ${a.current + 1}</legend>${q.options.map((option, i) => `<label class="option"><input type="radio" name="answer" value="${i}" ${a.answers[q.id] === i ? 'checked' : ''}><span class="option-letter">${String.fromCharCode(65 + i)}</span><span class="option-text">${esc(option)}</span></label>`).join('')}</fieldset>` : `<label class="textarea-label" for="written-answer">Your response</label><textarea id="written-answer" class="answer-field" maxlength="10000" placeholder="Put your thoughts into words…" aria-describedby="answer-meta">${esc(a.answers[q.id] || '')}</textarea><div class="answer-meta" id="answer-meta"><span id="word-count">${wordCount(a.answers[q.id] || '')} words</span><span>Suggested: ${q.recommended} words · 10,000 characters max</span></div><p class="review-tip">Your answer is saved as you type. Quality matters more than word count.</p>`}</div><div class="question-bottom">${btn('Clear answer', 'clear-answer', 'ghost', 'reset')}<div class="question-controls">${btn('Previous', 'previous', 'secondary', 'left', a.current === 0 ? 'disabled' : '')}${btn(a.current === 11 ? 'Review answers' : 'Next question', a.current === 11 ? 'submit-review' : 'next', 'primary', 'arrow')}</div></div></section><aside class="exam-aside"><div id="navigator-root">${navigator()}</div><div class="exam-tools">${btn('Scratchpad', 'scratchpad', 'secondary', 'pen')}${btn('Text size', 'text-size', 'secondary', 'type', `aria-pressed="${state.largeText}"`)}</div><div class="exam-tip"><h4>A little reminder</h4><p>No negative marking. Trust your instincts, and flag anything you’d like to revisit.</p></div></aside></div><div class="heading-actions mobile-exam-tools" style="margin-top:17px">${btn('Scratchpad', 'scratchpad', 'ghost small', 'pen')}${btn(state.largeText ? 'Standard text size' : 'Larger text', 'text-size', 'ghost small', 'type', `aria-pressed="${state.largeText}"`)}</div>`;
+      <div class="exam-layout"><section class="question-card" aria-labelledby="question-title"><div class="question-top"><span class="number">Question ${String(a.current + 1).padStart(2, '0')} <span>/ 12</span></span>${btn(flagged ? 'Flagged for review' : 'Flag for review', 'flag', `secondary small flag-button ${flagged ? 'flagged' : ''}`, 'flag', `aria-pressed="${flagged}"`)}</div><div class="question-body"><div class="question-meta"><span class="pill neutral">${q.type === 'mcq' ? 'Multiple choice' : 'Written response'}</span><span class="pill peach">${q.points} marks</span><span class="pill neutral">${q.topic}</span></div><h2 id="question-title">${esc(q.title)}</h2>${q.prompt ? `<p>${esc(q.prompt)}</p>` : '<p>Select one answer below.</p>'}${q.code ? `<code class="code">${esc(q.code)}</code>` : ''}${q.type === 'mcq' ? `<fieldset class="options" style="border:0;padding:0;margin-left:0;margin-right:0"><legend class="sr-only">Choose an answer to question ${a.current + 1}</legend>${q.options.map((option, i) => `<label class="option"><input type="radio" name="answer" value="${i}" ${a.answers[q.id] === i ? 'checked' : ''}><span class="option-letter">${String.fromCharCode(65 + i)}</span><span class="option-text">${esc(option)}</span></label>`).join('')}</fieldset>` : `<label class="textarea-label" for="written-answer">Your response</label><textarea id="written-answer" class="answer-field" maxlength="10000" placeholder="Put your thoughts into words…" aria-describedby="answer-meta">${esc(a.answers[q.id] || '')}</textarea><div class="answer-meta" id="answer-meta"><span id="word-count">${wordCount(a.answers[q.id] || '')} ${wordCount(a.answers[q.id] || '') === 1 ? 'word' : 'words'}</span><span>Suggested: ${q.recommended} words · 10,000 characters max</span></div><p class="review-tip">Your answer is saved as you type. Quality matters more than word count.</p>`}</div><div class="question-bottom">${btn('Clear answer', 'clear-answer', 'ghost', 'reset')}<div class="question-controls">${btn('Previous', 'previous', 'secondary', 'left', a.current === 0 ? 'disabled' : '')}${btn(a.current === 11 ? 'Review answers' : 'Next question', a.current === 11 ? 'submit-review' : 'next', 'primary', 'arrow')}</div></div></section><aside class="exam-aside"><div id="navigator-root">${navigator()}</div><div class="exam-tools">${btn('Scratchpad', 'scratchpad', 'secondary', 'pen')}${btn('Text size', 'text-size', 'secondary', 'type', `aria-pressed="${state.largeText}"`)}</div><div class="exam-tip"><h4>A little reminder</h4><p>No negative marking. Trust your instincts, and flag anything you’d like to revisit.</p></div></aside></div><div class="heading-actions mobile-exam-tools" style="margin-top:17px">${btn('Scratchpad', 'scratchpad', 'ghost small', 'pen')}${btn(state.largeText ? 'Standard text size' : 'Larger text', 'text-size', 'ghost small', 'type', `aria-pressed="${state.largeText}"`)}</div>`;
   }
   function wordCount(text) { return text.trim() ? text.trim().split(/\s+/).length : 0; }
   function resultPage() {
     const a = currentResult();
-    if (!a) return `<div class="page-heading"><div><div class="eyebrow">Every attempt is a step forward</div><h1>Your progress, on paper.</h1><p>Scores, thoughtful feedback, and a clearer path to what’s next.</p></div></div><div class="empty-state"><div class="empty-icon">${icon('chart')}</div><h2>Your story starts with a try.</h2><p>Complete an examination to see your score and question-by-question feedback. In a hurry? Explore a sample report with our evaluator demo.</p>${btn(state.active ? 'Resume your exam' : 'Take the sample exam', state.active ? 'resume' : 'start', 'primary', 'arrow')}${btn('Load a sample report', 'sample-report', 'secondary', 'chart')}</div>`;
+    if (!a) return `<div class="page-heading"><div><div class="eyebrow">Every attempt is a step forward</div><h1>Your progress, on paper.</h1><p>Scores, thoughtful feedback, and a clearer path to what’s next.</p></div></div><div class="empty-state"><div class="empty-icon">${icon('chart')}</div><h2>Your story starts with a try.</h2><p>Complete an examination to see your score and question-by-question feedback. In a hurry? Explore a sample report with our evaluator demo.</p>${btn(state.active ? 'Resume your exam' : 'Start the examination', state.active ? 'resume' : 'start', 'primary', 'arrow')}${btn('Load a sample report', 'sample-report', 'secondary', 'chart')}</div>`;
+    const paper = E.getPaper(a);
     const g = E.grade(a), elapsed = Math.min(a.duration, Math.max(0, Math.round((a.submittedAt - a.startedAt) / 1000)));
-    return `<div class="page-heading"><div><div class="eyebrow">${a.demo ? 'Demo report' : 'Your examination report'} &nbsp; / &nbsp; ${dateFormat(a.submittedAt)}</div><h1>A little wiser. A step further.</h1><p>${paper.title} &nbsp;·&nbsp; ${a.autoSubmitted ? 'Automatically submitted when time expired' : 'Successfully submitted'}</p></div><div class="heading-actions">${btn('Export JSON', 'export', 'secondary small', 'download')}${btn('Print report', 'print', 'secondary small', 'print')}${btn('Try again', 'retake', 'primary small', 'reset')}</div></div>
-      ${state.history.length > 1 ? `<div style="margin-bottom:18px"><label for="attempt-select" class="sr-only">Choose an attempt</label><select id="attempt-select" class="history-select">${state.history.map((item, i) => `<option value="${esc(item.id)}" ${item.id === a.id ? 'selected' : ''}>${item.demo ? 'Demo' : 'Exam'} · ${dateFormat(item.submittedAt)} · ${E.grade(item).earned}/40${i === 0 ? ' · Latest' : ''}</option>`).join('')}</select><span class="inline-note"> &nbsp; ${state.history.length} saved attempt${state.history.length > 1 ? 's' : ''}</span></div>` : ''}
-      ${g.provisional ? `<div class="notice peach">${icon('info')}<p><b>Written scores are provisional.</b> Simple keyword checks suggest a score; they cannot judge meaning or correctness. An evaluator can review each written answer below and confirm its marks.</p></div>` : `<div class="notice">${icon('checkCircle')}<p><b>Evaluation complete.</b> All written responses have been reviewed. Your final marks are shown below.</p></div>`}
-      <div class="results-top"><section class="score-card"><div class="score-ring" style="--score:${g.percent}" role="img" aria-label="Score: ${g.earned} out of 40, ${g.percent} percent"><div><strong>${g.percent}<span style="font-size:20px">%</span></strong><small>${g.earned} / 40 marks</small></div></div><div class="score-copy"><span class="pill ${g.passed ? '' : 'peach'}">${g.provisional ? 'PROVISIONAL · ' : 'FINAL · '}${g.passed ? 'PASS' : 'BELOW PASS MARK'}</span><h2>${g.percent >= 80 ? 'Beautifully done.' : g.passed ? 'A solid foundation.' : 'Keep your curiosity.'}</h2><p>${g.passed ? 'You’re building something good. Explore the feedback to see where you can grow next.' : 'Every attempt teaches you something. Use the model answers to build your understanding.'}</p></div></section><div class="result-stats"><div class="result-stat"><span>Questions answered</span><b>${g.answered} / 12</b></div><div class="result-stat"><span>Time taken</span><b>${formatTime(elapsed)}</b></div><div class="result-stat"><span>Pass threshold</span><b>20 / 40 · 50%</b></div><div class="result-stat"><span>Written responses reviewed</span><b>${g.rows.slice(8).filter(r => r.reviewed).length} / 4</b></div></div></div>
-      <div class="breakdown"><div class="breakdown-card"><div class="row"><h3>Section A · Multiple choice</h3><b>${g.mcq} <small style="font-weight:400;color:var(--muted)">/ 16</small></b></div><p>Automatically graded · ${g.rows.slice(0, 8).filter(r => r.earned === 2).length} correct answers</p><div class="progress-track"><div class="progress-fill" style="width:${g.mcq / 16 * 100}%"></div></div></div><div class="breakdown-card written"><div class="row"><h3>Section B · Written responses</h3><b>${g.written} <small style="font-weight:400;color:var(--muted)">/ 24</small></b></div><p>${g.provisional ? 'Rubric suggestions · evaluator review available' : 'Evaluator-confirmed marks'}</p><div class="progress-track"><div class="progress-fill" style="width:${g.written / 24 * 100}%"></div></div></div></div>
+    return `<div class="page-heading"><div><div class="eyebrow">${a.demo ? 'Practice demo report' : 'Assessment report'} &nbsp; / &nbsp; ${dateFormat(a.submittedAt)} · ${timeFormat(a.submittedAt)}</div><h1>A little wiser. A step further.</h1><p>${paper.title} &nbsp;·&nbsp; ${paper.code} &nbsp;·&nbsp; ${a.autoSubmitted ? 'Automatically submitted when time expired' : 'Successfully submitted'}</p></div><div class="heading-actions">${btn('Export JSON', 'export', 'secondary small', 'download')}${btn('Print report', 'print', 'secondary small', 'print')}${btn(a.demo ? 'Repeat demo' : 'Retake assessment', a.demo ? 'demo' : 'retake', 'primary small', 'reset')}</div></div>
+      ${state.history.length > 1 ? `<div style="margin-bottom:18px"><label for="attempt-select" class="sr-only">Choose an attempt</label><select id="attempt-select" class="history-select">${state.history.map((item, i) => `<option value="${esc(item.id)}" ${item.id === a.id ? 'selected' : ''}>${item.demo ? 'Demo' : 'Assessment'} · ${dateFormat(item.submittedAt)} ${timeFormat(item.submittedAt)} · ${E.grade(item).earned}/40${E.grade(item).provisional ? ' est.' : ''}${i === 0 ? ' · Latest' : ''}</option>`).join('')}</select><span class="inline-note"> &nbsp; ${state.history.length} saved attempt${state.history.length > 1 ? 's' : ''}</span></div>` : ''}
+      ${a.candidate ? `<div class="candidate-strip"><span>Candidate <b>${esc(a.candidate.name)}</b></span><span>Roll / student ID <b>${esc(a.candidate.roll)}</b></span><span>Paper <b>${paper.code}</b></span></div>` : ''}
+      <div class="view-switch"><div><span class="pill ${evaluatorMode ? 'peach' : 'neutral'}">${icon(evaluatorMode ? 'pen' : 'chart')}${evaluatorMode ? 'Evaluator view' : 'Learner view'}</span><span>${evaluatorMode ? 'Review responses and confirm marks.' : 'Your answers, marks, and feedback.'}</span></div>${btn(evaluatorMode ? 'Back to learner view' : 'Open evaluator view', 'toggle-evaluator', 'secondary small', evaluatorMode ? 'left' : 'pen')}</div>
+      ${g.provisional ? `<div class="notice peach">${icon('info')}<p><b>Awaiting written-answer evaluation.</b> MCQ marks are confirmed. The written marks and overall total are estimates until an evaluator reviews the responses. A pass or fail outcome will be shown after evaluation.</p></div>` : `<div class="notice">${icon('checkCircle')}<p><b>Evaluation complete.</b> ${g.rows.slice(8).some(r => r.answered) ? 'All submitted written responses have been reviewed.' : 'Unanswered written questions receive zero marks.'} Your final result is shown below.</p></div>`}
+      <div class="results-top"><section class="score-card"><div class="score-ring" style="--score:${g.percent}" role="img" aria-label="Score: ${g.earned} out of 40, ${g.percent} percent"><div><strong>${g.percent}<span style="font-size:20px">%</span></strong><small>${g.earned} / 40 ${g.provisional ? 'estimated' : 'marks'}</small></div></div><div class="score-copy"><span class="pill ${g.passed ? '' : 'peach'}">${g.provisional ? 'AWAITING EVALUATION' : g.passed ? 'FINAL · PASS' : 'FINAL · BELOW PASS MARK'}</span><h2>${g.provisional ? 'Your work is in.' : g.percent >= 80 ? 'Beautifully done.' : g.passed ? 'A solid foundation.' : 'Keep your curiosity.'}</h2><p>${g.provisional ? 'Your objective marks are ready. Written responses need a human review before the result is final.' : g.passed ? 'You’re building something good. Explore the feedback to see where you can grow next.' : 'Every attempt teaches you something. Use the model answers to build your understanding.'}</p></div></section><div class="result-stats"><div class="result-stat"><span>Questions answered</span><b>${g.answered} / 12</b></div><div class="result-stat"><span>Time taken</span><b>${Math.floor(elapsed / 60)}m ${elapsed % 60}s</b></div><div class="result-stat"><span>Pass threshold</span><b>20 / 40 · 50%</b></div><div class="result-stat"><span>Written marks confirmed</span><b>${g.rows.slice(8).filter(r => r.reviewed).length} / 4</b></div></div></div>
+      <div class="breakdown"><div class="breakdown-card"><div class="row"><h3>Section A · Multiple choice</h3><b>${g.mcq} <small style="font-weight:400;color:var(--muted)">/ 16</small></b></div><p>Automatically graded · ${g.rows.slice(0, 8).filter(r => r.earned === 2).length} correct ${g.rows.slice(0, 8).filter(r => r.earned === 2).length === 1 ? 'answer' : 'answers'}</p><div class="progress-track"><div class="progress-fill" style="width:${g.mcq / 16 * 100}%"></div></div></div><div class="breakdown-card written"><div class="row"><h3>Section B · Written responses</h3><b>${g.written} <small style="font-weight:400;color:var(--muted)">/ 24</small></b></div><p>${g.provisional ? 'Estimated marks · awaiting evaluation' : 'Confirmed marks · unanswered responses earn 0'}</p><div class="progress-track"><div class="progress-fill" style="width:${g.written / 24 * 100}%"></div></div></div></div>
       <div class="review-heading"><h2>A closer look at your answers.</h2><div class="filter-group" role="group" aria-label="Filter answers">${[['all', 'All answers'], ['mcq', 'MCQs'], ['written', 'Written'], ['attention', 'To improve']].map(([value, label]) => `<button class="filter-button ${filter === value ? 'active' : ''}" data-action="filter" data-filter="${value}" aria-pressed="${filter === value}">${label}</button>`).join('')}</div></div><div id="answer-review">${reviewRows(a, g)}</div>`;
   }
   function reviewRows(a, g) {
+    const paper = E.getPaper(a);
     const visible = paper.questions.filter((q, i) => filter === 'all' || filter === q.type || (filter === 'attention' && g.rows[i].earned < q.points));
     if (!visible.length) return '<div class="empty-state" style="padding:30px"><p style="margin:0 auto">All marks earned. There’s nothing to improve in this view.</p></div>';
     return visible.map(q => {
       const index = paper.questions.indexOf(q), r = g.rows[index], answer = a.answers[q.id];
-      return `<details class="review-item" ${filter === 'written' ? 'open' : ''}><summary><span class="review-number">${String(index + 1).padStart(2, '0')}</span><span class="review-title">${esc(q.title)}</span><span class="points" style="color:${r.earned === q.points ? '#527b40' : '#b27b4a'}">${r.earned} / ${q.points}</span>${icon('right')}</summary><div class="review-content">${q.code ? `<code class="code">${esc(q.code)}</code>` : ''}<h4>Your answer</h4><div class="review-answer ${q.type === 'mcq' && r.earned === 0 ? 'incorrect' : ''}">${r.answered ? esc(q.type === 'mcq' ? q.options[answer] : answer) : 'No answer submitted.'}</div>${q.type === 'mcq' ? `${r.earned === 0 ? `<h4>Correct answer</h4><div class="review-answer">${esc(q.options[q.correct])}</div>` : ''}<p class="explanation">${esc(q.explanation)}</p>` : `<h4>Rubric suggestions</h4><div class="rubric-list">${r.criteria.map(c => `<div class="rubric-row ${c.matched ? 'matched' : ''}">${icon(c.matched ? 'checkCircle' : 'info')}<span>${esc(c.label)}</span><b>${c.matched ? c.points : 0} / ${c.points}</b></div>`).join('')}</div><p class="review-tip">These checks detect terms, not understanding. The evaluator also assesses accuracy, clarity, and the full prompt.</p><h4>Model answer</h4><div class="review-answer">${esc(q.model)}</div>${r.reviewed ? `<h4>Evaluator feedback · ${r.earned} / 6 confirmed</h4><p class="explanation">${esc(r.feedback || 'Marks reviewed and confirmed by the evaluator.')}</p>` : ''}<div style="margin-top:15px">${btn(r.reviewed ? 'Edit evaluation' : 'Evaluate this answer', 'evaluate', 'secondary small', 'pen', `data-id="${q.id}"`)}</div>`}</div></details>`;
+      return `<details class="review-item" ${filter === 'written' ? 'open' : ''}><summary><span class="review-number">${String(index + 1).padStart(2, '0')}</span><span class="review-title">${esc(q.title)}</span><span class="points" style="color:${r.earned === q.points ? '#527b40' : '#b27b4a'}">${r.earned} / ${q.points}${!r.reviewed ? ' est.' : ''}</span>${icon('right')}</summary><div class="review-content">${q.code ? `<code class="code">${esc(q.code)}</code>` : ''}<h4>Your answer</h4><div class="review-answer ${q.type === 'mcq' && r.earned === 0 ? 'incorrect' : ''}">${r.answered ? esc(q.type === 'mcq' ? q.options[answer] : answer) : 'No answer submitted.'}</div>${q.type === 'mcq' ? `${r.earned === 0 ? `<h4>Correct answer</h4><div class="review-answer">${esc(q.options[q.correct])}</div>` : ''}<p class="explanation">${esc(q.explanation)}</p>` : `${evaluatorMode && r.answered ? `<h4>Rubric suggestions · ${r.suggested} / ${q.points}</h4><div class="rubric-list">${r.criteria.map(c => `<div class="rubric-row ${c.matched ? 'matched' : ''}">${icon(c.matched ? 'checkCircle' : 'info')}<span>${esc(c.label)}</span><b>${c.matched ? c.points : 0} / ${c.points}</b></div>`).join('')}</div><p class="review-tip">Term matching is only a starting point. Judge the full response for meaning, accuracy, and coverage.</p>` : ''}${evaluatorMode || r.reviewed ? `<h4>Model answer</h4><div class="review-answer">${esc(q.model)}</div>` : '<p class="explanation">Awaiting evaluator review. Model answers and confirmed feedback will appear once this response has been evaluated.</p>'}${r.reviewed ? `<h4>${r.answered ? `Evaluator feedback · ${r.earned} / 6 confirmed` : 'Unanswered · 0 / 6'}</h4><p class="explanation">${r.answered ? esc(r.feedback || 'Marks reviewed and confirmed by the evaluator.') : 'No response was submitted, so this question receives zero marks.'}</p>` : ''}${evaluatorMode && r.answered ? `<div style="margin-top:15px">${btn(r.reviewed ? 'Edit evaluation' : 'Evaluate this answer', 'evaluate', 'secondary small', 'pen', `data-id="${q.id}"`)}</div>` : ''}`}</div></details>`;
     }).join('');
   }
   function guidePage() {
-    return `<div class="page-heading"><div><div class="eyebrow">Clarity comes first</div><h1>Fair marks. Clear reasoning.</h1><p>Here’s how the paper is evaluated, from your first answer to your final score.</p></div></div><div class="guide-grid"><section class="guide-card"><div class="subject-icon">${icon('checkCircle')}</div><h2>The marking scheme.</h2><p>One paper, two ways to show what you know. All questions carry positive marks. An incorrect or unanswered MCQ earns zero.</p><table class="grade-table"><thead><tr><th>Section</th><th>Questions</th><th>Marks</th></tr></thead><tbody><tr><td>Multiple choice</td><td>8 × 2</td><td>16</td></tr><tr><td>Written responses</td><td>4 × 6</td><td>24</td></tr><tr><td><b>Total</b></td><td>12</td><td><b>40</b></td></tr></tbody></table><p style="margin-top:15px">The pass threshold is <b>20 out of 40 (50%)</b>. No negative marking. MCQs are graded against a fixed answer key.</p></section><section class="guide-card"><div class="subject-icon">${icon('pen')}</div><h2>Words deserve a closer look.</h2><p>Each written response has three rubric criteria worth 2 marks each. Matching relevant terms generates an initial score suggestion.</p><ul><li>Scores are explicitly <b>provisional</b> until reviewed.</li><li>Keyword checks can miss good answers or reward incorrect statements. They are a guide for the evaluator.</li><li>The evaluator can award 0–6 marks, in half-mark increments, and leave feedback.</li><li>Once all four written answers are reviewed, the overall result becomes <b>final</b>.</li></ul></section><section class="guide-card"><div class="subject-icon">${icon('play')}</div><h2>A demo in two minutes.</h2><p>An easy walkthrough for your lab evaluator.</p><div class="steps"><div class="step"><div><b>Start the evaluator demo</b>Read the instructions and start a separate 2-minute session.</div></div><div class="step"><div><b>Try the exam tools</b>Fill sample answers, flag a question, write a response, and refresh to see it restored.</div></div><div class="step"><div><b>Submit or test the timer</b>Use “Test time-up” to reduce the countdown to 15 seconds and watch automatic submission.</div></div><div class="step"><div><b>Review and confirm marks</b>Open a written answer, adjust its marks, add feedback, then print or export the report.</div></div></div><div style="margin-top:23px">${btn('Launch evaluator demo', 'demo', 'primary', 'play')}</div></section><section class="guide-card"><div class="subject-icon">${icon('shield')}</div><h2>Your workspace, explained.</h2><ul><li><b>No login required.</b> This is a guest exam workspace.</li><li><b>Local autosave.</b> Answers, notes, flags, and the timer are restored in the same browser when storage is available.</li><li><b>A continuous timer.</b> Leaving or refreshing the page does not pause the exam. An expired attempt submits as soon as this page is active again.</li><li><b>20 recent attempts.</b> Reports stay on this device. Export anything you want to keep.</li><li><b>Practice and demonstration.</b> All code and answer keys are inside this file. It is designed for a lab demo, not secure, proctored assessment.</li><li><b>Offline by design.</b> No internet connection, third-party requests, or server is needed.</li></ul></section></div>`;
+    return `<div class="page-heading"><div><div class="eyebrow">Clarity comes first</div><h1>Fair marks. Clear reasoning.</h1><p>Here’s how the paper is evaluated, from your first answer to your final score.</p></div></div><div class="guide-grid"><section class="guide-card"><div class="subject-icon">${icon('checkCircle')}</div><h2>The marking scheme.</h2><p>The practice paper and assessment share this format, but use different questions. All questions carry positive marks. An incorrect or unanswered MCQ earns zero.</p><table class="grade-table"><thead><tr><th>Section</th><th>Questions</th><th>Marks</th></tr></thead><tbody><tr><td>Multiple choice</td><td>8 × 2</td><td>16</td></tr><tr><td>Written responses</td><td>4 × 6</td><td>24</td></tr><tr><td><b>Total</b></td><td>12</td><td><b>40</b></td></tr></tbody></table><p style="margin-top:15px">The pass threshold is <b>20 out of 40 (50%)</b>. No negative marking. MCQs are graded against a fixed answer key.</p></section><section class="guide-card"><div class="subject-icon">${icon('pen')}</div><h2>Words deserve a closer look.</h2><p>Each written response has three rubric criteria worth 2 marks each. Matching relevant terms generates an initial score suggestion.</p><ul><li>Scores are explicitly <b>provisional</b> until reviewed.</li><li>Keyword checks can miss good answers or reward incorrect statements. They are a guide for the evaluator.</li><li>The evaluator can award 0–6 marks, in half-mark increments, and leave feedback.</li><li>A submitted written answer needs evaluator review. An unanswered one receives zero automatically. The pass/fail outcome is released once all marks are confirmed.</li></ul></section><section class="guide-card"><div class="subject-icon">${icon('play')}</div><h2>A demo in two minutes.</h2><p>An easy walkthrough for your lab evaluator.</p><div class="steps"><div class="step"><div><b>Start the evaluator demo</b>Use the prefilled demo registration and start a 2-minute session with the practice question set.</div></div><div class="step"><div><b>Try the exam tools</b>Fill sample answers, flag a question, write a response, and refresh to see it restored.</div></div><div class="step"><div><b>Submit or test the timer</b>Use “Test time-up” to reduce the countdown to 15 seconds and watch automatic submission.</div></div><div class="step"><div><b>Review and confirm marks</b>Switch to evaluator view in the report, review each written answer, and confirm its marks. Return to learner view to show the final result.</div></div></div><div style="margin-top:23px">${btn('Launch evaluator demo', 'demo', 'primary', 'play')}</div></section><section class="guide-card"><div class="subject-icon">${icon('shield')}</div><h2>Your workspace, explained.</h2><ul><li><b>Practice, then assessment.</b> Practice includes solutions. Assessment questions are revealed only after you start. Retaking an assessment uses the same set and saves a separate report.</li><li><b>A small registration.</b> Name and roll number identify each report. No password or account is needed. Learner and evaluator views are demonstration roles in this shared workspace.</li><li><b>Local autosave.</b> Answers, notes, flags, and the timer are restored in the same browser when storage is available.</li><li><b>A continuous timer.</b> Leaving or refreshing the page does not pause the exam. An expired attempt submits as soon as this page is active again.</li><li><b>20 recent attempts.</b> Reports stay on this device. Export anything you want to keep.</li><li><b>Practice and demonstration.</b> All code and answer keys are inside this file. It is designed for a lab demo, not secure, proctored assessment.</li><li><b>Offline by design.</b> No internet connection, third-party requests, or server is needed.</li></ul></section></div>`;
   }
   function renderPage() { return ({ overview, paper: paperPage, exam: examPage, results: resultPage, guide: guidePage }[view] || overview)(); }
   function openModal(kind, title, body, actions, wide = false) {
@@ -837,18 +916,26 @@ body{background:white;color:#111;font-size:11px}
       openModal('resume', 'Your exam is waiting.', '<p class="modal-intro">You already have an examination in progress. Resume and submit it before starting a new session. Your answers and remaining time are preserved.</p>', btn('Keep exploring', 'close-modal', 'secondary') + btn('Resume exam', 'resume', 'primary', 'arrow'));
       return;
     }
-    openModal(demo ? 'start-demo' : 'start', demo ? 'A quick tour. A real experience.' : 'A fresh page awaits.', `<p class="modal-intro">${demo ? 'Explore the full examination in a 2-minute demo. You can fill sample answers and fast-forward the timer to show automatic submission.' : 'Find a comfortable spot. Once you begin, the timer runs continuously until you submit or your time is up.'}</p><div class="modal-stats"><div><b>${demo ? 2 : 30}</b><small>MINUTES</small></div><div><b>12</b><small>QUESTIONS</small></div><div><b>40</b><small>MARKS</small></div></div><ul class="instructions"><li>${icon('checkCircle')}<span><b>8 MCQs and 4 written responses.</b> Move freely between questions. Incorrect answers carry no penalty.</span></li><li>${icon('clock')}<span><b>The timer keeps running.</b> Refreshing or leaving the page won’t pause it. Time expiry submits your answers automatically.</span></li><li>${icon('save')}<span><b>Progress saves locally.</b> Use this browser to resume. Written scores are provisional until an evaluator reviews them.</span></li></ul><label class="checkbox-label"><input type="checkbox" id="accept-instructions"><span>I’ve read the instructions and I’m ready to ${demo ? 'explore the demo' : 'begin my examination'}.</span></label>`, btn('Not just yet', 'close-modal', 'secondary') + btn(demo ? 'Begin demo' : 'Begin examination', demo ? 'begin-demo' : 'begin-exam', 'primary', 'arrow', 'id="begin-button" disabled'));
+    const candidate = demo ? { name: 'Demo Student', roll: 'DEMO-001' } : state.history.find(a => !a.demo && a.candidate)?.candidate || { name: '', roll: '' };
+    openModal(demo ? 'start-demo' : 'start', demo ? 'Try the complete experience.' : 'A quick registration.', `<p class="modal-intro">${demo ? 'A 2-minute walkthrough using the practice set. Demo details are prefilled so you can get straight to the exam tools.' : 'Just two details for your exam record. The timer starts only when you click “Begin examination”.'}</p><form id="registration-form" class="registration-form"><div><label for="candidate-name">Full name <span aria-hidden="true">*</span></label><input id="candidate-name" name="candidate-name" class="form-input" type="text" autocomplete="name" maxlength="80" required placeholder="e.g. Aditi Sharma" value="${esc(candidate.name)}"></div><div><label for="candidate-roll">Roll / student ID <span aria-hidden="true">*</span></label><input id="candidate-roll" name="candidate-roll" class="form-input" type="text" autocomplete="off" maxlength="30" required placeholder="e.g. B423037" value="${esc(candidate.roll)}"></div></form><div class="modal-stats"><div><b>${demo ? practicePaper.demoMinutes : paper.minutes}</b><small>MINUTES</small></div><div><b>12</b><small>QUESTIONS</small></div><div><b>40</b><small>MARKS</small></div></div><ul class="instructions compact-instructions"><li>${icon('paper')}<span>${demo ? '<b>Practice questions.</b> Fill prepared answers or shorten the timer to demonstrate submission.' : '<b>A separate assessment.</b> 8 MCQs and 4 written answers, different from the practice set. No negative marking.'}</span></li><li>${icon('clock')}<span><b>The timer runs continuously.</b> Refreshing won’t pause it. Answers submit automatically when time expires.</span></li><li>${icon('shield')}<span>${demo ? '<b>Demo report.</b> Written scores need evaluator confirmation.' : '<b>Study materials close during the exam.</b> Your name, ID, and progress stay saved on this device.'}</span></li></ul><label class="checkbox-label"><input type="checkbox" id="accept-instructions"><span>I’ve checked my details and read the examination instructions.</span></label>`, btn('Not just yet', 'close-modal', 'secondary') + btn(demo ? 'Begin demo' : 'Begin examination', demo ? 'begin-demo' : 'begin-exam', 'primary', 'arrow', 'id="begin-button" disabled'));
   }
   function begin(demo) {
     if (!$('#accept-instructions')?.checked || state.active) return;
-    state.active = E.createAttempt(demo); lastTimeAnnounced = ''; save(); navigate('exam');
-    toast(demo ? 'Your 2-minute demo has started.' : 'Your examination has started. Take your time.');
+    const form = $('#registration-form'), name = $('#candidate-name'), roll = $('#candidate-roll');
+    if (!form || !name || !roll) return;
+    name.setCustomValidity(name.value.trim() ? '' : 'Please enter your full name.');
+    roll.setCustomValidity(roll.value.trim() ? '' : 'Please enter your roll number or student ID.');
+    if (!form.reportValidity()) return;
+    state.active = E.createAttempt(demo);
+    state.active.candidate = { name: name.value.trim().replace(/\s+/g, ' '), roll: roll.value.trim() };
+    lastTimeAnnounced = ''; save(); navigate('exam');
+    toast(demo ? 'Your 2-minute practice demo has started.' : 'Registration complete. Your 30-minute examination has started.');
   }
   function updateNavigator() { if ($('#navigator-root') && state.active) $('#navigator-root').innerHTML = navigator(); }
   function liveAttempt() { if (state.active && E.secondsLeft(state.active) <= 0) { submit(true); return false; } return !!state.active; }
   function moveQuestion(index) {
     if (!liveAttempt()) return;
-    const a = state.active;
+    const a = state.active, paper = E.getPaper(a);
     a.current = Math.max(0, Math.min(11, index));
     if (!a.visited.includes(paper.questions[a.current].id)) a.visited.push(paper.questions[a.current].id);
     save(); closeModal(); render(); $('#question-title')?.setAttribute('tabindex', '-1'); $('#question-title')?.focus({ preventScroll: true });
@@ -856,7 +943,7 @@ body{background:white;color:#111;font-size:11px}
   }
   function toggleFlag() {
     if (!liveAttempt()) return;
-    const a = state.active, id = paper.questions[a.current].id;
+    const a = state.active, id = activePaper().questions[a.current].id;
     const exists = a.flags.includes(id); a.flags = exists ? a.flags.filter(f => f !== id) : [...a.flags, id];
     save(); updateNavigator();
     const button = $('.flag-button');
@@ -865,7 +952,7 @@ body{background:white;color:#111;font-size:11px}
   }
   function reviewSubmission() {
     if (!liveAttempt()) return;
-    const a = state.active, unanswered = paper.questions.filter(q => !E.answered(q, a.answers[q.id]));
+    const a = state.active, paper = E.getPaper(a), unanswered = paper.questions.filter(q => !E.answered(q, a.answers[q.id]));
     openModal('submit', 'Ready to turn the page?', `<p class="modal-intro">Take one last look before submitting. You can return to any question while time remains. Submitted answers cannot be changed.</p><div class="modal-stats"><div><b>${answeredCount(a)}</b><small>ANSWERED</small></div><div><b>${unanswered.length}</b><small>UNANSWERED</small></div><div><b>${a.flags.length}</b><small>FLAGGED</small></div></div>${unanswered.length ? `<h3>Still waiting for an answer</h3><p class="inline-note">Unanswered questions receive zero automatic marks.</p><div class="submission-list">${unanswered.map(q => btn(String(paper.questions.indexOf(q) + 1).padStart(2, '0'), 'question', 'secondary', '', `data-index="${paper.questions.indexOf(q)}" aria-label="Return to unanswered question ${paper.questions.indexOf(q) + 1}"`)).join('')}</div>` : '<div class="notice" style="margin:0">' + icon('checkCircle') + '<p>All 12 questions answered. Nicely done.</p></div>'}${a.flags.length ? `<h3>Flagged for a second look</h3><div class="submission-list">${a.flags.map(id => { const i = paper.questions.findIndex(q => q.id === id); return btn(String(i + 1).padStart(2, '0'), 'question', 'secondary', 'flag', `data-index="${i}"`); }).join('')}</div>` : ''}<p class="inline-note">The timer keeps running while you review this summary.</p>`, btn('Keep working', 'close-modal', 'secondary') + btn('Submit examination', 'confirm-submit', 'primary', 'checkCircle'));
   }
   function submit(auto = false) {
@@ -873,7 +960,7 @@ body{background:white;color:#111;font-size:11px}
     const a = state.active;
     if (E.secondsLeft(a) === 0) auto = true;
     a.submittedAt = auto ? a.deadline : Date.now(); a.autoSubmitted = auto;
-    state.history = [a, ...state.history.filter(item => item.id !== a.id)].slice(0, 20); state.selectedResult = a.id; state.active = null; filter = 'all';
+    state.history = [a, ...state.history.filter(item => item.id !== a.id)].slice(0, 20); state.selectedResult = a.id; state.active = null; filter = 'all'; evaluatorMode = false;
     save(); navigate('results');
     toast(auto ? 'Time’s up. Your answers have been submitted automatically.' : 'Examination submitted. Your feedback is ready.');
     $('#announcer').textContent = auto ? 'Time has expired. Your examination was automatically submitted.' : 'Your examination has been submitted.';
@@ -894,15 +981,15 @@ body{background:white;color:#111;font-size:11px}
     openModal('scratchpad', 'Room for rough thoughts.', `<p class="modal-intro">A private scratchpad for this attempt. Notes save automatically and aren’t graded. Your exam timer keeps running.</p><label class="field-label" for="scratchpad-notes">Your notes</label><textarea class="answer-field" id="scratchpad-notes" maxlength="20000" placeholder="Jot down a thought, work through a problem…" autofocus>${esc(state.active.notes)}</textarea><p class="inline-note">These notes are included in your exported attempt.</p>`, btn('Back to examination', 'close-modal', 'primary', 'arrow'), true);
   }
   function evaluate(id) {
-    const a = currentResult(), q = paper.questions.find(q => q.id === id);
-    if (!a || !q || q.type !== 'written') return;
+    const a = currentResult(), paper = E.getPaper(a), q = paper.questions.find(q => q.id === id);
+    if (!evaluatorMode || !a || !q || q.type !== 'written' || !E.answered(q, a.answers[id])) return;
     const row = E.scoreQuestion(q, a.answers[id], a.overrides[id]);
     openModal('evaluate', `Evaluate question ${paper.questions.indexOf(q) + 1}`, `<p class="modal-intro">${esc(q.title)}<br>Judge the complete response for accuracy, clarity, and coverage of the prompt. You may adjust the suggested score.</p><h3>Submitted response</h3><div class="review-answer">${esc(a.answers[id] || 'No answer submitted.')}</div><h3>Rubric · 2 marks per criterion</h3><div class="rubric-list">${row.criteria.map(c => `<div class="rubric-row ${c.matched ? 'matched' : ''}">${icon(c.matched ? 'checkCircle' : 'info')}<span>${esc(c.label)}</span><b>${c.matched ? 'Term detected' : 'No term detected'}</b></div>`).join('')}</div><label class="field-label" for="review-score">Confirmed marks (0–6, half marks allowed)</label><input class="form-input" id="review-score" type="number" min="0" max="6" step="0.5" value="${row.earned}" required><label class="field-label" for="review-feedback">Feedback <span style="font-weight:400;color:var(--muted)">(optional)</span></label><textarea class="form-input" id="review-feedback" rows="3" maxlength="2000" placeholder="What worked well? What could be clearer?">${esc(row.feedback)}</textarea><p class="inline-note">This confirms the marks for this answer, including when you keep the suggested score.</p>`, btn('Cancel', 'close-modal', 'secondary') + btn('Confirm evaluation', 'save-evaluation', 'primary', 'checkCircle'), true);
     modalQuestion = id;
   }
   function saveEvaluation() {
     const a = currentResult(), input = $('#review-score');
-    if (!a || !input || !input.reportValidity()) return;
+    if (!evaluatorMode || !a || !input || !input.reportValidity()) return;
     const score = input.valueAsNumber;
     if (!Number.isFinite(score) || score < 0 || score > 6 || score * 2 % 1 !== 0) return;
     a.overrides[modalQuestion] = { score, feedback: $('#review-feedback').value.trim(), reviewedAt: Date.now() };
@@ -914,13 +1001,13 @@ body{background:white;color:#111;font-size:11px}
   }
   function sampleReport() {
     const now = Date.now(), a = E.createAttempt(true, now - 90000);
-    a.answers = E.sampleAnswers(); a.submittedAt = now; a.visited = paper.questions.map(q => q.id);
-    state.history = [a, ...state.history].slice(0, 20); state.selectedResult = a.id; save(); filter = 'all'; navigate('results'); toast('Sample report loaded. Try evaluating a written answer.');
+    a.candidate = { name: 'Demo Student', roll: 'DEMO-001' }; a.answers = E.sampleAnswers(); a.submittedAt = now; a.visited = E.getPaper(a).questions.map(q => q.id);
+    state.history = [a, ...state.history].slice(0, 20); state.selectedResult = a.id; save(); filter = 'all'; evaluatorMode = false; navigate('results'); toast('Practice report loaded. Open evaluator view to review the written responses.');
   }
   function exportReport() {
     const a = currentResult(); if (!a) return;
-    const g = E.grade(a);
-    const report = { application: 'Folio', paper: paper.title, exportedAt: new Date().toISOString(), attempt: a, result: g, responses: paper.questions.map((q, i) => ({ question: q.title, type: q.type, answer: q.type === 'mcq' ? q.options[a.answers[q.id]] || null : a.answers[q.id] || null, correctOrModelAnswer: q.type === 'mcq' ? q.options[q.correct] : q.model, grading: g.rows[i] })) };
+    const paper = E.getPaper(a), g = E.grade(a);
+    const report = { application: 'Folio', paper: paper.title, paperCode: paper.code, resultStatus: g.provisional ? 'Awaiting evaluation' : 'Final', exportedAt: new Date().toISOString(), attempt: a, result: g, responses: paper.questions.map((q, i) => ({ question: q.title, type: q.type, answer: q.type === 'mcq' ? q.options[a.answers[q.id]] || null : a.answers[q.id] || null, correctOrModelAnswer: q.type === 'mcq' ? q.options[q.correct] : q.model, grading: g.rows[i] })) };
     const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' }));
     const link = document.createElement('a'); link.href = url; link.download = `folio-${a.demo ? 'demo' : 'exam'}-${a.id}.json`; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 15000); toast('Your report has been exported.');
   }
@@ -944,13 +1031,13 @@ body{background:white;color:#111;font-size:11px}
       case 'flag': toggleFlag(); break;
       case 'clear-answer': {
         if (!liveAttempt()) break;
-        const q = paper.questions[state.active.current];
+        const q = activePaper().questions[state.active.current];
         if (!E.answered(q, state.active.answers[q.id])) { toast('This question is already unanswered.'); break; }
         if (q.type === 'written') openModal('clear-answer', 'Clear this response?', '<p class="modal-intro">This will remove the written answer for this question. Your other answers will stay saved.</p>', btn('Keep response', 'close-modal', 'secondary') + btn('Clear response', 'confirm-clear', 'danger'));
         else { delete state.active.answers[q.id]; save(); render(); toast('Answer cleared.'); }
         break;
       }
-      case 'confirm-clear': if (liveAttempt()) { delete state.active.answers[paper.questions[state.active.current].id]; save(); closeModal(); render(); toast('Response cleared.'); } break;
+      case 'confirm-clear': if (liveAttempt()) { delete state.active.answers[activePaper().questions[state.active.current].id]; save(); closeModal(); render(); toast('Response cleared.'); } break;
       case 'submit-review': reviewSubmission(); break;
       case 'confirm-submit': submit(); break;
       case 'scratchpad': scratchpad(); break;
@@ -961,6 +1048,7 @@ body{background:white;color:#111;font-size:11px}
       case 'fast-timer': if (state.active?.demo) { state.active.deadline = Math.min(state.active.deadline, Date.now() + 15000); save(); updateTimer(); toast('Demo timer reduced to 15 seconds or less. Watch automatic submission.'); } break;
       case 'sample-report': sampleReport(); break;
       case 'filter': filter = target.dataset.filter; render(); break;
+      case 'toggle-evaluator': evaluatorMode = !evaluatorMode; filter = evaluatorMode ? 'written' : 'all'; render(); toast(evaluatorMode ? 'Evaluator view: review each response before confirming its marks.' : 'Learner report restored.'); break;
       case 'evaluate': evaluate(target.dataset.id); break;
       case 'save-evaluation': saveEvaluation(); break;
       case 'export': exportReport(); break;
@@ -971,19 +1059,26 @@ body{background:white;color:#111;font-size:11px}
     const el = event.target;
     if (el.id === 'accept-instructions') $('#begin-button').disabled = !el.checked;
     if (el.matches('input[name="answer"]') && liveAttempt()) {
-      const q = paper.questions[state.active.current];
+      const q = activePaper().questions[state.active.current];
       if (q.type !== 'mcq') return;
       state.active.answers[q.id] = Number(el.value); save(); updateNavigator();
     }
-    if (el.id === 'attempt-select') { state.selectedResult = el.value; save(); filter = 'all'; render(); }
+    if (el.id === 'attempt-select') { state.selectedResult = el.value; evaluatorMode = false; save(); filter = 'all'; render(); }
   });
   document.addEventListener('input', event => {
     const el = event.target;
+    if (['candidate-name', 'candidate-roll'].includes(el.id)) el.setCustomValidity('');
     if (el.id === 'written-answer' && liveAttempt()) {
-      state.active.answers[paper.questions[state.active.current].id] = el.value;
-      $('#word-count').textContent = `${wordCount(el.value)} words`; save(); updateNavigator();
+      state.active.answers[activePaper().questions[state.active.current].id] = el.value;
+      $('#word-count').textContent = `${wordCount(el.value)} ${wordCount(el.value) === 1 ? 'word' : 'words'}`; save(); updateNavigator();
     }
     if (el.id === 'scratchpad-notes' && liveAttempt()) { state.active.notes = el.value; save(); }
+  });
+  document.addEventListener('submit', event => {
+    if (event.target.id !== 'registration-form') return;
+    event.preventDefault();
+    if (!$('#accept-instructions')?.checked) { $('#accept-instructions')?.focus(); return; }
+    begin(modalKind === 'start-demo');
   });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') { closeModal(); $('#sidebar')?.classList.remove('open'); $('.mobile-menu')?.setAttribute('aria-expanded', 'false'); }
@@ -1017,6 +1112,7 @@ body{background:white;color:#111;font-size:11px}
   view = location.hash.slice(1) || (state.active ? 'exam' : 'overview');
   if (!['overview', 'paper', 'exam', 'results', 'guide'].includes(view)) view = 'overview';
   if (view === 'exam' && !state.active) view = state.history.length ? 'results' : 'overview';
+  if (state.active && !state.active.demo && ['paper', 'results'].includes(view)) view = 'exam';
   render();
   setInterval(updateTimer, 500);
 })();
